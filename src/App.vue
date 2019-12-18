@@ -7,16 +7,14 @@
       <v-container>
         <v-textarea
           counter
-          :auto-grow="qw"
           autofocus
           outlined
           id="maintext"
           v-model="text"
           label="在此输入内容："
-          @keyup="keyup"
-          @keydown="qw=false"
+          @input="input"
         ></v-textarea>
-
+        <!-- <textarea @input="OnInput" style="overflow-y:hidden;" name v-model="text" id="maintext"></textarea> -->
         <v-row>
           <v-col cols="12" md="6">
             <v-card outlined>
@@ -66,7 +64,7 @@
 
                 <v-row>
                   <v-col cols="12" md="6">
-                    <h4>总共字数</h4>
+                    <h4>字符总数</h4>
                   </v-col>
                   <v-col cols="12" md="6" class="d-flex justify-end">
                     <span>{{tj.all}}</span>
@@ -94,7 +92,6 @@ export default {
   name: "App",
   data: () => ({
     text: "null",
-    qw:true,
     tj: {
       hz: 0,
       zm: 0,
@@ -110,15 +107,31 @@ export default {
       obj.selectionStart = 0; // 选中开始位置
       obj.selectionEnd = 52; // 获取输入框里的长度。
     },
-    keyup() {
-      this.tj.kg = this.text.match(/\s/g).length;
+    input() {
+      this.tj.hz=this.text.match(/[\u4E00-\u9FFF]/g).length;
+      this.tj.zm=this.text.match(/[a-zA-Z]/g).length;
+      this.tj.fh=this.text.match(/(?=[^\u4E00-\u9FFF])[^\w\s]/g).length;
+      this.tj.kg = this.text.match(/[^\S\n]/g).length;
       this.tj.all = this.text.length;
-      this.qw=true;
-      // this.text+='\n'
     }
   },
-  mounted() {
+  created() {
     this.text = text.body;
+    this.input();
+  },
+  mounted() {
+    var tx = document.getElementsByTagName("textarea");
+    for (var i = 0; i < tx.length; i++) {
+      tx[i].setAttribute(
+        "style",
+        "height:" + tx[i].scrollHeight + "px;overflow-y:hidden;"
+      );
+      tx[i].addEventListener("input", OnInput, false);
+    }
+    function OnInput() {
+      // this.style.height = 'auto';// 当rows减少时使高度变小
+      this.style.height = (this.scrollHeight) + 'px';
+    }
   }
 };
 </script>
