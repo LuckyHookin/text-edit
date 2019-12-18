@@ -5,17 +5,18 @@
     </v-app-bar>
     <v-content>
       <v-container>
-        
-          <v-textarea
-            
-            auto-grow
-            id="maintext"
-            :value="text"
-            label="在此输入内容："
-            @keyup="change"
-            autofocus
-          ></v-textarea>
-        
+        <v-textarea
+          counter
+          :auto-grow="qw"
+          autofocus
+          outlined
+          id="maintext"
+          v-model="text"
+          label="在此输入内容："
+          @keyup="keyup"
+          @keydown="qw=false"
+        ></v-textarea>
+
         <v-row>
           <v-col cols="12" md="6">
             <v-card outlined>
@@ -93,6 +94,7 @@ export default {
   name: "App",
   data: () => ({
     text: "null",
+    qw:true,
     tj: {
       hz: 0,
       zm: 0,
@@ -108,9 +110,11 @@ export default {
       obj.selectionStart = 0; // 选中开始位置
       obj.selectionEnd = 52; // 获取输入框里的长度。
     },
-    change() {
-      this.tj.kg=this.text.match(/\s/g).length;
-      this.tj.all=this.text.length;
+    keyup() {
+      this.tj.kg = this.text.match(/\s/g).length;
+      this.tj.all = this.text.length;
+      this.qw=true;
+      // this.text+='\n'
     }
   },
   mounted() {
