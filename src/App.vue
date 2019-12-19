@@ -13,10 +13,13 @@
           v-model="text"
           label="请输入内容"
           @input="input"
+          @mouseup="mouseup"
+          @mouseout="mouseup"
+          @keyup="mouseup"
         ></v-textarea>
         <!-- <textarea @input="OnInput" style="overflow-y:hidden;" name v-model="text" id="maintext"></textarea> -->
         <v-row>
-          <v-col cols="12" md="6">
+          <v-col cols="12" md="4">
             <v-card outlined>
               <v-card-title>
                 <h3>统计</h3>
@@ -91,6 +94,24 @@
               <v-card-title>
                 <h3>操作</h3>
               </v-card-title>
+              <v-card-text>
+                <v-row>
+                  <v-col>
+                    <h3>文本选区：</h3>
+                    ({{selection.x1}},{{selection.x2}})
+                  </v-col>
+                  <v-col>
+                    <h3>{{selection.selectionStartStr!=""?selection.selectionStartStr+"→"+selection.selectionEndStr:""}}</h3>
+                  </v-col>
+                  <v-divider vertical></v-divider>
+
+                  <v-col>
+                    <h3>光标位置：</h3>
+                    [{{position}}]
+                  </v-col>
+                  <v-col></v-col>
+                </v-row>
+              </v-card-text>
             </v-card>
           </v-col>
         </v-row>
@@ -106,6 +127,13 @@ export default {
   data: () => ({
     text: "null",
     customText: "",
+    selection: {
+      selectionStartStr: "",
+      selectionEndStr: "",
+      x1: 0,
+      x2: 0
+    },
+    position: 0,
     tj: {
       hz: 0,
       zm: 0,
@@ -116,6 +144,23 @@ export default {
     }
   }),
   methods: {
+    mouseup() {
+      // 选区
+      const activeTextarea = document.activeElement;
+      const selection = activeTextarea.value.substring(
+        activeTextarea.selectionStart,
+        activeTextarea.selectionEnd
+      );
+      const selectionStartStr = selection.slice(0, 2);
+      const selectionEndStr = selection.slice(-2);
+      if (selectionStartStr != selectionEndStr) {
+        this.selection.selectionStartStr = selectionStartStr;
+        this.selection.selectionEndStr = selectionEndStr;
+        this.selection.x1 = activeTextarea.selectionStart;
+        this.selection.x2 = activeTextarea.selectionEnd;
+      }
+      this.position = activeTextarea.selectionEnd;
+    },
     btnclick() {
       const obj = document.getElementById("maintext");
       obj.focus();
@@ -123,17 +168,20 @@ export default {
       obj.selectionEnd = 52; // 获取输入框里的长度。
     },
     input() {
-      let a = this.customText!=""?this.text.match(new RegExp(this.customText, "g")):null;
-      this.tj.custom = a ? a.length : 0;// 自定义
+      let a =
+        this.customText != ""
+          ? this.text.match(new RegExp(this.customText, "g"))
+          : null;
+      this.tj.custom = a ? a.length : 0; // 自定义
       a = this.text.match(/[\u4E00-\u9FFF]/g);
-      this.tj.hz = a ? a.length : 0;// 汉字
+      this.tj.hz = a ? a.length : 0; // 汉字
       a = this.text.match(/[a-zA-Z]/g);
-      this.tj.zm = a ? a.length : 0;// 字母
+      this.tj.zm = a ? a.length : 0; // 字母
       a = this.text.match(/(?=[^\u4E00-\u9FFF])[^\w\s]/g);
-      this.tj.fh = a ? a.length : 0;// 符号
+      this.tj.fh = a ? a.length : 0; // 符号
       a = this.text.match(/[^\S\n]/g);
-      this.tj.kg = a ? a.length : 0;// 空格
-      this.tj.all = this.text.length;// 总长
+      this.tj.kg = a ? a.length : 0; // 空格
+      this.tj.all = this.text.length; // 总长
     }
   },
   created() {
@@ -141,6 +189,7 @@ export default {
     this.input();
   },
   mounted() {
+    // https://stackoverflow.com/questions/454202/creating-a-textarea-with-auto-resize
     // 高度自适应
     var tx = document.getElementsByTagName("textarea");
     for (var i = 0; i < tx.length; i++) {
