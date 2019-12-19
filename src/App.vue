@@ -11,7 +11,7 @@
           outlined
           id="maintext"
           v-model="text"
-          label="在此输入内容："
+          label="请输入内容"
           @input="input"
         ></v-textarea>
         <!-- <textarea @input="OnInput" style="overflow-y:hidden;" name v-model="text" id="maintext"></textarea> -->
@@ -70,6 +70,19 @@
                     <span>{{tj.all}}</span>
                   </v-col>
                 </v-row>
+                <v-row>
+                  <v-col>
+                    <h3>自定义字符统计</h3>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col cols="12" md="6">
+                    <v-text-field outlined dense label="请输入内容" v-model="customText" @input="input"></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="6" class="d-flex justify-end">
+                    <span>{{tj.custom}}</span>
+                  </v-col>
+                </v-row>
               </v-card-text>
             </v-card>
           </v-col>
@@ -92,12 +105,14 @@ export default {
   name: "App",
   data: () => ({
     text: "null",
+    customText: "",
     tj: {
       hz: 0,
       zm: 0,
       fh: 0,
       kg: 0,
-      all: 0
+      all: 0,
+      custom: 0
     }
   }),
   methods: {
@@ -108,11 +123,17 @@ export default {
       obj.selectionEnd = 52; // 获取输入框里的长度。
     },
     input() {
-      this.tj.hz=this.text.match(/[\u4E00-\u9FFF]/g).length;
-      this.tj.zm=this.text.match(/[a-zA-Z]/g).length;
-      this.tj.fh=this.text.match(/(?=[^\u4E00-\u9FFF])[^\w\s]/g).length;
-      this.tj.kg = this.text.match(/[^\S\n]/g).length;
-      this.tj.all = this.text.length;
+      let a = this.customText!=""?this.text.match(new RegExp(this.customText, "g")):null;
+      this.tj.custom = a ? a.length : 0;// 自定义
+      a = this.text.match(/[\u4E00-\u9FFF]/g);
+      this.tj.hz = a ? a.length : 0;// 汉字
+      a = this.text.match(/[a-zA-Z]/g);
+      this.tj.zm = a ? a.length : 0;// 字母
+      a = this.text.match(/(?=[^\u4E00-\u9FFF])[^\w\s]/g);
+      this.tj.fh = a ? a.length : 0;// 符号
+      a = this.text.match(/[^\S\n]/g);
+      this.tj.kg = a ? a.length : 0;// 空格
+      this.tj.all = this.text.length;// 总长
     }
   },
   created() {
@@ -120,6 +141,7 @@ export default {
     this.input();
   },
   mounted() {
+    // 高度自适应
     var tx = document.getElementsByTagName("textarea");
     for (var i = 0; i < tx.length; i++) {
       tx[i].setAttribute(
@@ -129,8 +151,8 @@ export default {
       tx[i].addEventListener("input", OnInput, false);
     }
     function OnInput() {
-      // this.style.height = 'auto';// 当rows减少时使高度变小
-      this.style.height = (this.scrollHeight) + 'px';
+      // this.style.height = 'auto';// 当rows减少时使高度变小，会使光标趋向视口底部
+      this.style.height = this.scrollHeight + "px";
     }
   }
 };
