@@ -18,6 +18,39 @@
         <!-- <textarea @input="OnInput" style="overflow-y:hidden;" name v-model="text" id="maintext"></textarea> -->
         <v-row>
           <v-col cols="12" md="4">
+            <v-card class="mb-4" outlined>
+              <v-card-text>
+                <v-row>
+                  <v-col>
+                    <v-btn rounded color="primary">打开文件</v-btn>
+                  </v-col>
+                  <v-spacer></v-spacer>
+                  <v-col>
+                    <v-btn rounded color="primary">保存文件</v-btn>
+                  </v-col>
+                </v-row>
+                <v-divider></v-divider>
+                <v-row>
+                  <v-col>
+                    <v-btn rounded color="primary">加密</v-btn>
+                  </v-col>
+                  <v-spacer></v-spacer>
+                  <v-col>
+                    <v-btn rounded color="primary">解密</v-btn>
+                  </v-col>
+                </v-row>
+                <v-row>
+                  <v-col>
+                    <v-text-field
+                      dense
+                      outlined
+                      v-model="keyText"
+                      label="密钥"
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+            </v-card>
             <v-card outlined>
               <v-card-title>
                 <h3>统计</h3>
@@ -145,13 +178,15 @@
                   </v-col>
                 </v-row>
                 <v-row>
-                  <v-col cols="2" v-for="x in search.array" :key="x.id">
-                    {{ x===-1?"End":x }}
-                    </v-col>
+                  <v-col cols="2" v-for="x in search.array" :key="x.id">{{ x===-1?"End":x }}</v-col>
                 </v-row>
-                <v-col class="mx-auto" cols="6"><v-divider></v-divider></v-col>
+                <v-col class="mx-auto" cols="6">
+                  <v-divider></v-divider>
+                </v-col>
                 <v-row>
-                  <v-col cols="12"><h3>替换：</h3></v-col>
+                  <v-col cols="12">
+                    <h3>替换：</h3>
+                  </v-col>
                   <v-col>
                     <v-text-field
                       dense
@@ -180,7 +215,8 @@ import text from "@/assets/text.json";
 export default {
   name: "App",
   data: () => ({
-    exchangeText:"",
+    keyText:"",
+    exchangeText: "",
     search: {
       text: "",
       array: []
@@ -203,28 +239,32 @@ export default {
       all: 0,
       custom: 0
     },
-    snackbar: {// 提示
+    snackbar: {
+      // 提示
       show: false,
       text: ""
     }
   }),
   methods: {
-    exchangeFunc(){
-      if (this.search.text!="") {
-        this.text=this.text.replace(new RegExp(this.search.text ,"g"),this.exchangeText);
-        this.snackbar.text="替换成功！";
-        this.snackbar.show=true;
+    exchangeFunc() {
+      if (this.search.text != "") {
+        this.text = this.text.replace(
+          new RegExp(this.search.text, "g"),
+          this.exchangeText
+        );
+        this.snackbar.text = "替换成功！";
+        this.snackbar.show = true;
       }
     },
     searchFunc() {
-      let searchArr =this.search.array[this.search.array.length - 1];
+      let searchArr = this.search.array[this.search.array.length - 1];
       if (searchArr != -1) {
         searchArr = this.text.indexOf(this.search.text, searchArr + 1);
         this.search.array.push(searchArr);
         return 0;
       }
-      this.snackbar.text="查找完毕！";
-      this.snackbar.show=true;
+      this.snackbar.text = "查找完毕！";
+      this.snackbar.show = true;
       // const obj = document.getElementById("maintext");
       // obj.focus();
       // obj.selectionStart = 2106; // 选中开始位置
