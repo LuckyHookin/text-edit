@@ -130,19 +130,37 @@
                 <v-divider></v-divider>
                 <v-row>
                   <v-col cols="12">
-                    <h3 class="mb-4">查找：</h3>
+                    <h3>查找：</h3>
+                  </v-col>
+                  <v-col>
                     <v-text-field
                       dense
                       outlined
                       v-model="search.text"
-                      label="回车发起搜索"
-                      @keyup.enter="searchfunc"
+                      label="按回车查找"
+                      @keyup.enter="searchFunc"
+                      @input="search.array=[]"
                     ></v-text-field>
-                    <h4>找到的位置：</h4>
+                    <h4>-->找到的位置：</h4>
                   </v-col>
                 </v-row>
                 <v-row>
-                    <v-col cols="2" v-for="x in search.array" :key="x.id">{{ x }}</v-col>
+                  <v-col cols="2" v-for="x in search.array" :key="x.id">
+                    {{ x===-1?"End":x }}
+                    </v-col>
+                </v-row>
+                <v-col class="mx-auto" cols="6"><v-divider></v-divider></v-col>
+                <v-row>
+                  <v-col cols="12"><h3>替换：</h3></v-col>
+                  <v-col>
+                    <v-text-field
+                      dense
+                      outlined
+                      v-model="exchangeText"
+                      label="按回车替换全部"
+                      @keyup.enter="exchangeFunc"
+                    ></v-text-field>
+                  </v-col>
                 </v-row>
               </v-card-text>
             </v-card>
@@ -162,6 +180,7 @@ import text from "@/assets/text.json";
 export default {
   name: "App",
   data: () => ({
+    exchangeText:"",
     search: {
       text: "",
       array: []
@@ -184,23 +203,28 @@ export default {
       all: 0,
       custom: 0
     },
-    snackbar: {
+    snackbar: {// 提示
       show: false,
       text: ""
     }
   }),
   methods: {
-    searchfunc() {
-      let searchArr =
-        this.search.array.length === 0
-          ? -1
-          : this.search.array[this.search.array.length - 1];
-
-      searchArr = this.text.indexOf(this.search.text, searchArr + 1);
-      if (searchArr != -1) {
-        this.search.array.push(searchArr);
+    exchangeFunc(){
+      if (this.search.text!="") {
+        this.text=this.text.replace(new RegExp(this.search.text ,"g"),this.exchangeText);
+        this.snackbar.text="替换成功！";
+        this.snackbar.show=true;
       }
-
+    },
+    searchFunc() {
+      let searchArr =this.search.array[this.search.array.length - 1];
+      if (searchArr != -1) {
+        searchArr = this.text.indexOf(this.search.text, searchArr + 1);
+        this.search.array.push(searchArr);
+        return 0;
+      }
+      this.snackbar.text="查找完毕！";
+      this.snackbar.show=true;
       // const obj = document.getElementById("maintext");
       // obj.focus();
       // obj.selectionStart = 2106; // 选中开始位置
