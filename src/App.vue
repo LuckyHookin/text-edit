@@ -4,7 +4,7 @@
       <h1>多功能文本编辑器</h1>
     </v-app-bar>
     <v-content>
-      <v-container>
+      <v-container @mouseup="mouseup">
         <v-textarea
           counter
           autofocus
@@ -13,8 +13,6 @@
           v-model="text"
           label="请输入内容"
           @input="input"
-          @mouseup="mouseup"
-          @mouseout="mouseup"
           @keyup="mouseup"
         ></v-textarea>
         <!-- <textarea @input="OnInput" style="overflow-y:hidden;" name v-model="text" id="maintext"></textarea> -->
@@ -101,7 +99,7 @@
                     ({{selection.x1}},{{selection.x2}})
                   </v-col>
                   <v-col>
-                    <h3>{{selection.selectionStartStr!=""?selection.selectionStartStr+"→"+selection.selectionEndStr:""}}</h3>
+                    <h3>{{selection.smallText}}</h3>
                   </v-col>
                   <v-divider vertical></v-divider>
 
@@ -111,10 +109,49 @@
                   </v-col>
                   <v-col></v-col>
                 </v-row>
+                <br />
+                <v-row class="justify-md-space-around">
+                  <v-btn color="primary" @click="copy">复制</v-btn>
+                  <v-btn color="primary" @click="cut">剪切</v-btn>
+                  <v-btn color="primary" @click="del">删除</v-btn>
+                  <v-btn color="primary" @click="paste">黏贴</v-btn>
+                </v-row>
+                <v-row>
+                  <v-col>
+                    <v-textarea
+                      id="clipText"
+                      :value="clipText"
+                      outlined
+                      label="获取剪贴板内容"
+                      @mouseenter="getClipText"
+                    ></v-textarea>
+                  </v-col>
+                </v-row>
+                <v-divider></v-divider>
+                <v-row>
+                  <v-col cols="12">
+                    <h3 class="mb-4">查找：</h3>
+                    <v-text-field
+                      dense
+                      outlined
+                      v-model="search.text"
+                      label="回车发起搜索"
+                      @keyup.enter="searchfunc"
+                    ></v-text-field>
+                    <h4>找到的位置：</h4>
+                  </v-col>
+                </v-row>
+                <v-row>
+                    <v-col cols="2" v-for="x in search.array" :key="x.id">{{ x }}</v-col>
+                </v-row>
               </v-card-text>
             </v-card>
           </v-col>
         </v-row>
+        <v-snackbar v-model="snackbar.show" color="primary">
+          {{ snackbar.text }}
+          <v-btn color="red" text @click="snackbar.show = false">关闭</v-btn>
+        </v-snackbar>
       </v-container>
     </v-content>
   </v-app>
@@ -125,11 +162,16 @@ import text from "@/assets/text.json";
 export default {
   name: "App",
   data: () => ({
+    search: {
+      text: "",
+      array: []
+    },
+    clipText: "[获取剪切板内容]",
     text: "null",
-    customText: "",
+    customText: "", // 自定义统计要匹配的文本
     selection: {
-      selectionStartStr: "",
-      selectionEndStr: "",
+      text: "",
+      smallText: "", // 显示选区头尾各两字符
       x1: 0,
       x2: 0
     },
@@ -141,31 +183,144 @@ export default {
       kg: 0,
       all: 0,
       custom: 0
+    },
+    snackbar: {
+      show: false,
+      text: ""
     }
   }),
   methods: {
+    searchfunc() {
+      let searchArr =
+        this.search.array.length === 0
+          ? -1
+          : this.search.array[this.search.array.length - 1];
+
+      searchArr = this.text.indexOf(this.search.text, searchArr + 1);
+      if (searchArr != -1) {
+        this.search.array.push(searchArr);
+      }
+
+      // const obj = document.getElementById("maintext");
+      // obj.focus();
+      // obj.selectionStart = 2106; // 选中开始位置
+      // obj.selectionEnd = 2108; // 获取输入框里的长度。
+      // this.$vuetify.goTo(0);
+    },
+    getClipText() {
+      navigator.clipboard.readText().then(clipText => {
+        this.clipText = clipText;
+      });
+      setTimeout(() => {
+        const ele = document.getElementById("clipText");
+        ele.style.height = "auto"; // 当rows减少时使高度变小，会使光标趋向视口底部
+        ele.style.height = ele.scrollHeight + 10 + "px";
+      }, 10);
+    },
     mouseup() {
+      // https://developer.mozilla.org/en-US/docs/Web/API/DocumentOrShadowRoot/activeElement
       // 选区
       const activeTextarea = document.activeElement;
-      const selection = activeTextarea.value.substring(
+      if (activeTextarea.id != "maintext") {
+        return -1;
+      }
+      const selection = this.text.substring(
         activeTextarea.selectionStart,
         activeTextarea.selectionEnd
       );
       const selectionStartStr = selection.slice(0, 2);
       const selectionEndStr = selection.slice(-2);
-      if (selectionStartStr != selectionEndStr) {
-        this.selection.selectionStartStr = selectionStartStr;
-        this.selection.selectionEndStr = selectionEndStr;
-        this.selection.x1 = activeTextarea.selectionStart;
-        this.selection.x2 = activeTextarea.selectionEnd;
-      }
+
+      this.selection.text = selection;
+      this.selection.smallText = selectionStartStr + "→" + selectionEndStr;
+      this.selection.x1 = activeTextarea.selectionStart;
+      this.selection.x2 = activeTextarea.selectionEnd;
+
       this.position = activeTextarea.selectionEnd;
     },
-    btnclick() {
-      const obj = document.getElementById("maintext");
-      obj.focus();
-      obj.selectionStart = 0; // 选中开始位置
-      obj.selectionEnd = 52; // 获取输入框里的长度。
+    copy() {
+      // const obj = document.getElementById("maintext");
+      // obj.focus();
+      // obj.selectionStart = 0; // 选中开始位置
+      // obj.selectionEnd = 52; // 获取输入框里的长度。
+
+      // https://developer.mozilla.org/en-US/docs/Web/API/Clipboard
+      // 剪切板
+      this.snackbar.text = "请确定选区！";
+      if (this.selection.x1 != this.selection.x2) {
+        // 把 selection.text 写到剪贴板
+        navigator.clipboard.writeText(this.selection.text);
+        this.snackbar.text = "复制成功！";
+      }
+      this.snackbar.show = true;
+      // 读
+      // navigator.clipboard.readText().then(clipText => alert(clipText));
+
+      // https://developer.mozilla.org/en-US/docs/Web/API/Selection/deleteFromDocument
+      // 选区删除
+    },
+    cut() {
+      this.snackbar.text = "请确定选区！";
+
+      if (this.selection.x1 != this.selection.x2) {
+        // 把 selection.text 写到剪贴板
+        navigator.clipboard.writeText(this.selection.text);
+        // 删除选区
+        // let selection = window.getSelection();
+        // selection.deleteFromDocument();
+        this.text =
+          this.text.substring(0, this.selection.x1) +
+          this.text.substring(this.selection.x2, this.text.length);
+        this.snackbar.text = "剪切成功！";
+      }
+      this.snackbar.show = true;
+    },
+    del() {
+      this.snackbar.text = "请确定选区！";
+      if (this.selection.x1 != this.selection.x2) {
+        // let selection = window.getSelection();
+        // selection.deleteFromDocument(); // 删除选区
+        this.text =
+          this.text.substring(0, this.selection.x1) +
+          this.text.substring(this.selection.x2, this.text.length);
+        this.snackbar.text = "删除成功！";
+      }
+      this.snackbar.show = true;
+    },
+    paste() {
+      // https://www.w3school.com.cn/jsref/jsref_indexOf.asp
+      // search
+      // https://www.w3school.com.cn/jsref/jsref_replace.asp
+      // 正则替换
+
+      // function changeStr(allstr,start,end,str,changeStr){ //allstr:原始字符串，start,开始位置,end：结束位置,str：要改变的字，changeStr:改变后的字
+      // return allstr.substring(0,start-1)+changeStr+allstr.substring(end,allstr.length);
+      // let tclipText;
+      // navigator.clipboard.readText().then(clipText => tclipText=clipText);
+      if (this.selection.x2 > this.text.length) {
+        // 超出范围
+        this.snackbar.text = "超出范围！";
+        this.snackbar.show = true;
+        return -1;
+      }
+      navigator.clipboard.readText().then(clipText => {
+        this.text =
+          this.text.substring(0, this.selection.x1) +
+          clipText +
+          this.text.substring(this.selection.x2, this.text.length);
+      });
+      this.input();
+      setTimeout(() => {
+        const ele = document.getElementById("maintext");
+        ele.style.height = ele.scrollHeight + "px";
+        this.snackbar.text = "黏贴成功！";
+        this.snackbar.show = true;
+      }, 10);
+
+      // this.text =
+      //   this.text.substring(0, this.selection.x1) +
+      //   navigator.clipboard.readText().then(clipText => {return clipText.toString()})
+      // +this.text.substring(this.selection.x2, this.text.length);
     },
     input() {
       let a =
