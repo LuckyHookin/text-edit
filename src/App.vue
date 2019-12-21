@@ -18,35 +18,30 @@
         <!-- <textarea @input="OnInput" style="overflow-y:hidden;" name v-model="text" id="maintext"></textarea> -->
         <v-row>
           <v-col cols="12" md="4">
-            <v-card class="mb-4" outlined>
+            <v-card class="mb-3" outlined>
+              <v-card-title>
+                <h3>文件</h3>
+              </v-card-title>
               <v-card-text>
                 <v-row>
                   <v-col>
-                    <v-btn rounded color="primary">打开文件</v-btn>
-                  </v-col>
-                  <v-spacer></v-spacer>
-                  <v-col>
-                    <v-btn rounded color="primary">保存文件</v-btn>
+                    <v-file-input outlined dense @change="readTextFile" label="点击打开文件"></v-file-input>
+                    <v-btn rounded color="primary" @click="downloadFile">保存文件</v-btn>
                   </v-col>
                 </v-row>
                 <v-divider></v-divider>
                 <v-row>
                   <v-col>
-                    <v-btn rounded color="primary">加密</v-btn>
+                    <v-btn rounded color="primary" @click="encrypt">加密</v-btn>
+                  </v-col>
+                  <v-col>
+                    <v-btn rounded color="primary" @click="decrypt">解密</v-btn>
                   </v-col>
                   <v-spacer></v-spacer>
-                  <v-col>
-                    <v-btn rounded color="primary">解密</v-btn>
-                  </v-col>
                 </v-row>
                 <v-row>
                   <v-col>
-                    <v-text-field
-                      dense
-                      outlined
-                      v-model="keyText"
-                      label="密钥"
-                    ></v-text-field>
+                    <v-text-field dense outlined v-model="keyText" label="密钥"></v-text-field>
                   </v-col>
                 </v-row>
               </v-card-text>
@@ -144,10 +139,10 @@
                 </v-row>
                 <br />
                 <v-row class="justify-md-space-around">
-                  <v-btn color="primary" @click="copy">复制</v-btn>
-                  <v-btn color="primary" @click="cut">剪切</v-btn>
-                  <v-btn color="primary" @click="del">删除</v-btn>
-                  <v-btn color="primary" @click="paste">黏贴</v-btn>
+                  <v-btn rounded color="primary" @click="copy">复制</v-btn>
+                  <v-btn rounded color="primary" @click="cut">剪切</v-btn>
+                  <v-btn rounded color="primary" @click="del">删除</v-btn>
+                  <v-btn rounded color="primary" @click="paste">黏贴</v-btn>
                 </v-row>
                 <v-row>
                   <v-col>
@@ -212,10 +207,13 @@
 
 <script>
 import text from "@/assets/text.json";
+import CryptoJs from "crypto-js";
+
 export default {
   name: "App",
   data: () => ({
-    keyText:"",
+    readText: null,
+    keyText: "",
     exchangeText: "",
     search: {
       text: "",
@@ -246,6 +244,66 @@ export default {
     }
   }),
   methods: {
+    encrypt() {
+      // https://github.com/brix/crypto-js
+      this.text = CryptoJs.AES.encrypt(
+        this.text,
+        CryptoJs.MD5(this.keyText).toString(),
+        {
+          mode:CryptoJs.mode.ECB,
+          padding:CryptoJs.pad.Pkcs7
+        }
+      ).toString();
+      setTimeout(() => {
+        const ele = document.getElementById("maintext");
+        ele.style.height = ele.scrollHeight + "px";
+      }, 10);
+    },
+    decrypt() {
+      this.text = CryptoJs.AES.decrypt(
+        this.text,
+        CryptoJs.MD5(this.keyText).toString(),
+        {
+          mode:CryptoJs.mode.ECB,
+          padding:CryptoJs.pad.Pkcs7
+        }
+      ).toString(CryptoJs.enc.Utf8);
+      setTimeout(() => {
+        const ele = document.getElementById("maintext");
+        ele.style.height = ele.scrollHeight + "px";
+      }, 10);
+    },
+    readTextFile(e) {
+      // this.readText=e;
+      // console.log(e);
+      if (e == null) {
+        return 0;
+      }
+      e.text().then(text => {
+        this.text = text;
+        this.input();
+        setTimeout(() => {
+          const ele = document.getElementById("maintext");
+          ele.style.height = ele.scrollHeight + "px";
+        }, 10);
+      });
+    },
+    downloadFile() {
+      if (this.text === "") {
+        return 0;
+      }
+      // https://github.com/LeonWuV/FE-blog-repository
+      var elementA = document.createElement("a");
+      elementA.setAttribute(
+        "href",
+        "data:text/plain;charset=utf-8," + this.text
+      );
+      elementA.setAttribute("download", +new Date() + ".txt");
+      elementA.style.display = "none";
+      document.body.appendChild(elementA);
+      elementA.click();
+      document.body.removeChild(elementA);
+    },
     exchangeFunc() {
       if (this.search.text != "") {
         this.text = this.text.replace(
