@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-app-bar app color="primary" dark>
-      <h1>多功能文本编辑器</h1>
+      <h1>在线文本编辑器</h1>
     </v-app-bar>
     <v-content>
       <v-container @mouseup="mouseup">
