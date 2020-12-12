@@ -138,7 +138,7 @@
                   <v-col></v-col>
                 </v-row>
                 <br />
-                <v-row class="justify-md-space-around">
+                <v-row class="justify-space-around">
                   <v-btn rounded color="primary" @click="copy">复制</v-btn>
                   <v-btn rounded color="primary" @click="cut">剪切</v-btn>
                   <v-btn rounded color="primary" @click="del">删除</v-btn>
@@ -208,6 +208,7 @@
 <script>
 import text from "@/assets/text.json";
 import CryptoJs from "crypto-js";
+import { saveAs } from 'file-saver';
 
 export default {
   name: "App",
@@ -292,17 +293,8 @@ export default {
       if (this.text === "") {
         return 0;
       }
-      // https://github.com/LeonWuV/FE-blog-repository
-      var elementA = document.createElement("a");
-      elementA.setAttribute(
-        "href",
-        "data:text/plain;charset=utf-8," + this.text
-      );
-      elementA.setAttribute("download", +new Date() + ".txt");
-      elementA.style.display = "none";
-      document.body.appendChild(elementA);
-      elementA.click();
-      document.body.removeChild(elementA);
+      let file = new File([this.text], new Date().toLocaleString()+".txt", {type: "text/plain;charset=utf-8"});
+      saveAs(file);
     },
     exchangeFunc() {
       if (this.search.text != "") {
