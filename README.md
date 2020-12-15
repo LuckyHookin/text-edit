@@ -1,6 +1,6 @@
 简易文本编辑器，用于练习 vuetify 和 vue。
 
-![image](https://github.com/LuckyHookin/Text-Editor/raw/master/image.png)
+![image](https://i.loli.net/2020/12/15/XAeqDpRTU15tzm6.png)
 
 ## Project setup
 ```
