@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <v-app-bar app color="primary" dark>
-      <h1>在线文本编辑器</h1>
+      <h2>在线文本编辑器</h2>
     </v-app-bar>
     <v-content>
       <v-container @mouseup="mouseup">
@@ -208,7 +208,7 @@
 <script>
 import text from "@/assets/text.json";
 import CryptoJs from "crypto-js";
-import { saveAs } from 'file-saver';
+// import { saveAs } from 'file-saver';
 
 export default {
   name: "App",
@@ -293,8 +293,17 @@ export default {
       if (this.text === "") {
         return 0;
       }
-      let file = new File([this.text], new Date().toLocaleString()+".txt", {type: "text/plain;charset=utf-8"});
-      saveAs(file);
+      // https://github.com/LeonWuV/FE-blog-repository
+      var elementA = document.createElement("a");
+      elementA.setAttribute(
+        "href",
+        "data:text/plain;charset=utf-8," + this.text
+      );
+      elementA.setAttribute("download", +new Date() + ".txt");
+      elementA.style.display = "none";
+      document.body.appendChild(elementA);
+      elementA.click();
+      document.body.removeChild(elementA);
     },
     exchangeFunc() {
       if (this.search.text != "") {
