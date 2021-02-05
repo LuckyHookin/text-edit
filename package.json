@@ -9,7 +9,11 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
+<<<<<<< HEAD
     "core-js": "^3.8.3",
+=======
+    "core-js": "^3.8.1",
+>>>>>>> 29acb9b2afd1cf2ecc67a5fd600e35e6d220e23c
     "crypto-js": "^4.0.0",
     "js-file-downloader": "^1.1.15",
     "prerender-spa-plugin": "^3.4.0",
